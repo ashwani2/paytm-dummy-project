@@ -18,7 +18,19 @@ app.post("/hdfcWebhook", async (req, res) => {
         amount: req.body.amount
     };
     console.log(paymentInformation)
+    // TODO:Check if the onramptxn is processing or not
+    const transactionData=await db.onRampTransaction.findFirst({
+        where:{
+            token:paymentInformation.token
+        }
+    })
 
+    if(transactionData?.status!=='Processing'){
+        return res.status(411).json({
+            message: "Transaction is already made"
+        })
+    }
+    
     try {
         await db.$transaction([
             db.balance.updateMany({
